@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Agenda</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: #0d0d0d;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    #particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #0d0d0d;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    #container {
+      position: relative;
+      z-index: 2;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #logo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      text-align: center;
+    }
+
+    #logo {
+      width: 120px;
+      height: auto;
+      margin-right: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      color: #4CAF50;
+      line-height: 1.4;
+    }
+
+    h1 span {
+      font-size: 1em;
+      color: #ccc;
+      display: block;
+    }
+
+    #events {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-height: calc(100vh - 250px);
+      overflow-y: auto;
+      gap: 20px;
+    }
+
+    .event-column {
+      background-color: rgba(76, 175, 80, 0.6);
+      padding: 15px;
+      border-radius: 10px;
+      width: 250px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .event-column h2 {
+      text-align: center;
+      color: #eee;
+      font-size: 1em;
+    }
+
+    .event {
+      margin-bottom: 10px;
+    }
+
+    .event-time {
+      font-size: 0.9em;
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <div id="particles"></div>
+
+  <div id="container">
+    <div id="logo-container">
+      <img id="logo" src="logo.png" alt="Logo">
+      <h1>
+        CEPOLISPE Montelibretti<br>
+        <span>Appuntamenti nei prossimi sette giorni</span>
+      </h1>
+    </div>
+    <div id="events"></div>
+  </div>
+
+  <script>
+    const eventSource = new EventSource('/events');
+
+    eventSource.onmessage = function(event) {
+      const eventsContainer = document.getElementById('events');
+      const events = JSON.parse(event.data);
+      eventsContainer.innerHTML = '';
+
+      if (events.length === 0) {
+        eventsContainer.innerHTML = '<p>Nessun evento disponibile.</p>';
+        return;
+      }
+
+      const eventsByDate = {};
+      events.forEach(e => {
+        const eventDate = new Date(e.start).toISOString().split('T')[0];
+        if (!eventsByDate[eventDate]) {
+          eventsByDate[eventDate] = [];
+        }
+        eventsByDate[eventDate].push(e);
+      });
+
+      const sortedDates = Object.keys(eventsByDate).sort();
+
+      const formatDate = dateStr => {
+        const date = new Date(dateStr);
+        return String(date.getDate()).padStart(2, '0') + '.' +
+               String(date.getMonth() + 1).padStart(2, '0') + '.' +
+               date.getFullYear();
+      };
+
+      sortedDates.forEach(date => {
+        const column = document.createElement('div');
+        column.classList.add('event-column');
+
+        const dateHeading = document.createElement('h2');
+        dateHeading.textContent = formatDate(date);
+        column.appendChild(dateHeading);
+
+        eventsByDate[date].forEach(e => {
+          const eventDiv = document.createElement('div');
+          eventDiv.classList.add('event');
+          eventDiv.innerHTML = `
+            <strong>${e.summary}</strong>
+            <div class="event-time">${new Date(e.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            <div>${e.description}</div>
+          `;
+          column.appendChild(eventDiv);
+        });
+
+        eventsContainer.appendChild(column);
+      });
+    };
+
+    eventSource.onerror = function(error) {
+      console.error('Errore nella connessione SSE:', error);
+      eventSource.close();
+    };
+
+    const canvas = document.createElement('canvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    document.getElementById('particles').appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    const particles = Array.from({ length: 10 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      radius: Math.random() * 9 + 1,
+      dx: (Math.random() - 0.5) * 3,
+      dy: (Math.random() - 0.5) * 3
+    }));
+
+    let lastUpdate = 0;
+    const fps = 10;
+
+    function animate(timestamp) {
+      if (timestamp - lastUpdate < 1000 / fps) {
+        requestAnimationFrame(animate);
+        return;
+      }
+      lastUpdate = timestamp;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+      });
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
