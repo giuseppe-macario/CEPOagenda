@@ -30,12 +30,12 @@ python agenda.py
 project_root/
 ├── app.py              # Flask server
 ├── index.html          # Main frontend
-├── static/
-│   ├── style.css       # Styles
-│   ├── logo.png        # Logo image
-│   ├── events.js       # Event rendering logic
-│   ├── particles.js    # Particle animation
-│   └── icons/          # Favicons
+└── static/
+    ├── style.css       # Styles
+    ├── logo.png        # Logo image
+    ├── events.js       # Event rendering logic
+    ├── particles.js    # Particle animation
+    └── icons/          # Favicons
 ```
 
 ## Requirements
