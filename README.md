@@ -28,7 +28,7 @@ python agenda.py
 
 ```
 project_root/
-├── app.py              # Flask server
+├── agenda.py           # Flask server
 ├── index.html          # Main frontend
 └── static/
     ├── style.css       # Styles
