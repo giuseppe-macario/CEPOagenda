@@ -5,14 +5,12 @@ from time import sleep
 from datetime import datetime, timedelta, time, timezone
 from icalendar import Calendar
 from flask import Flask, jsonify, send_from_directory, Response
-from flask_cors import CORS
 import json
 
 app = Flask(__name__)
-CORS(app)  # Solo per sviluppo locale
 
 # URL del file .ics
-ICS_URL = 'http://127.0.0.1/Calendar.ics'
+ICS_URL = 'https://peif.esercito.difesa.it/home/agenda@cepolispe.esercito.difesa.it/Calendar.ics'
 
 # Variabile globale per memorizzare il contenuto del file .ics in memoria
 ics_content = None
@@ -107,7 +105,7 @@ def events_sse():
             if events:
                 yield f"data: {json.dumps(events)}\n\n"
 
-            sleep(30)  # Ogni 30 secondi
+            sleep(60)  # Ogni 60 secondi
 
     return Response(generate(), content_type='text/event-stream')
 
@@ -120,11 +118,11 @@ def update_ics_periodically():
     """Controlla periodicamente (ogni 5 minuti) se ci sono aggiornamenti per il file .ics."""
     while True:
         download_ics()  # Scarica il file .ics in memoria
-        sleep(30)  # Ogni 30 secondi
+        sleep(60)  # Ogni 60 secondi
 
 if __name__ == '__main__':
     # Avvia il thread per l'aggiornamento periodico
     threading.Thread(target=update_ics_periodically, daemon=True).start()
 
-    # Avvia il server Flask su tutte le interfacce di rete, alla porta 80
+    # Avvia il server Flask su tutte le interfacce di rete, alla porta 1981
     app.run(host='0.0.0.0', port=1981, threaded=True)
