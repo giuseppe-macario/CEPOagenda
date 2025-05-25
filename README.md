@@ -13,14 +13,14 @@ This project displays upcoming calendar events from an `.ics` file on a fullscre
 ## Usage
 
 1. Clone the repository
-2. Place your `Calendar.ics` file in a local HTTP-accessible location
-3. Start the Flask server:
+2. Place your `Calendar.ics` file in an HTTP-accessible location (most likely peif.esercito.difesa.it)
+3. Start the Flask server on 10.X.X.X:
 
 ```bash
 python agenda.py
 ```
 
-4. Open your TV browser at http://10.X.X.X:1981
+4. Open http://10.X.X.X:1981 on your TV web browser
 
 > For TV dashboards, set the browser in fullscreen (F11 on most systems)
 
